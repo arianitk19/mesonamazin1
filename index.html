@@ -4,6 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Meso Namazin</title>
+
+
+<!-- Lidhja me Manifestin -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#10b981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script>
+  // Regjistrimi i Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('App gati për përdorim offline.'))
+        .catch(err => console.log('Gabim në regjistrim:', err));
+    });
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
     
     <script src="https://unpkg.com/@barba/core"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>

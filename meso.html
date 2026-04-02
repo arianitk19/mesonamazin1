@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="sq" x-data="mesoCore()" :class="{ 'dark': settings.darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Mëso | Ekselenca Akademia</title>
+    
+
+
+
+
+<!-- Barba.js për tranzicionet -->
+<script src="https://unpkg.com/@barba/core"></script>
+<!-- GSAP për animacionin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+
+
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        arabic: ['Amiri', 'serif']
+                    },
+                    colors: {
+                        pri: { 500: '#10b981', 600: '#059669', 950: '#020617' },
+                        gold: { 400: '#fbbf24', 500: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+        }
+
+        @media (min-width: 1024px) {
+            .app-container { max-width: 1000px; }
+            .nav-container { max-width: 600px; left: 50%; transform: translateX(-50%); }
+        }
+
+        body { opacity: 0; transition: opacity 0.6s ease-in-out; }
+        body.loaded { opacity: 1; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .arabic-font { font-family: 'Amiri', serif; line-height: 2; text-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+        
+        .category-btn.active {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] dark:bg-pri-950 text-slate-900 dark:text-white" :class="{ 'loaded': true }">
+
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-pri-500/10 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold-500/5 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="relative z-10 app-container mx-auto min-h-screen flex flex-col pb-40">
+        
+        <header class="pt-12 px-6 flex justify-between items-center sticky top-0 bg-inherit/20 backdrop-blur-md z-50">
+            <div class="flex items-center gap-4">
+                <div @click="pageTransition('index.html')" class="w-12 h-12 glass-card rounded-xl flex items-center justify-center cursor-pointer active:scale-90 transition-all">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter">Akademia</h1>
+                    <span class="text-[9px] font-black uppercase tracking-[0.3em] text-pri-600">Eksploro & Mëso</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 bg-pri-500 rounded-xl flex items-center justify-center shadow-lg shadow-pri-500/20">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+        </header>
+
+        <div class="mt-8 px-6 overflow-x-auto no-scrollbar flex gap-4 pb-2">
+            <template x-for="cat in categories" :key="cat.id">
+                <button @click="setCategory(cat.id)" 
+                        class="category-btn flex-shrink-0 px-8 py-5 glass-card rounded-[2rem] flex flex-col items-center gap-3 transition-all duration-500 border-2 border-transparent"
+                        :class="activeCat === cat.id ? 'active' : 'opacity-40 hover:opacity-100'">
+                    <div class="w-8 h-8" x-html="cat.icon"></div>
+                    <span class="text-[9px] font-black uppercase tracking-widest" x-text="cat.name"></span>
+                </button>
+            </template>
+        </div>
+
+        <main class="mt-10 px-6 space-y-6">
+            <template x-for="(item, i) in activeData" :key="i">
+                <div @click="openModal(item)" 
+                     class="glass-card p-7 rounded-[2.5rem] group cursor-pointer hover:border-pri-500/40 transition-all duration-500 relative overflow-hidden"
+                     x-init="gsap.from($el, { opacity: 0, y: 20, delay: i * 0.1 })">
+                    
+                    <div class="flex items-center gap-6 relative z-10">
+                        <div class="w-16 h-16 bg-pri-500/10 rounded-2xl flex items-center justify-center text-pri-500 group-hover:bg-pri-500 group-hover:text-white transition-all duration-500" x-html="item.icon"></div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <h3 class="text-lg font-black tracking-tighter" x-text="item.title"></h3>
+                                <span class="text-[8px] font-black uppercase bg-pri-500/10 text-pri-500 px-2 py-1 rounded-md" x-text="item.tag"></span>
+                            </div>
+                            <p class="text-xs font-medium opacity-40 leading-relaxed line-clamp-1" x-text="item.shortDesc"></p>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-pri-500/0 to-pri-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+            </template>
+        </main>
+
+        <nav class="nav-container fixed bottom-8 left-6 right-6 h-22 glass-card rounded-[3rem] flex items-center justify-around px-4 shadow-2xl z-[100] border border-white/10">
+            <template x-for="nav in navigation">
+                <a :href="nav.url" @click.prevent="pageTransition(nav.url)" 
+                   class="relative flex flex-col items-center justify-center w-16 h-16 group transition-all"
+                   :class="nav.active ? 'text-pri-500' : 'opacity-30 hover:opacity-100'">
+                    <div class="group-hover:-translate-y-1 transition-transform duration-300" x-html="nav.icon"></div>
+                    <span class="text-[8px] font-black uppercase tracking-widest mt-1.5" x-text="nav.label"></span>
+                    <div x-show="nav.active" class="absolute -bottom-1 w-1 h-1 bg-pri-500 rounded-full"></div>
+                </a>
+            </template>
+        </nav>
+
+        <div x-show="modalOpen" class="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6" x-cloak>
+            <div x-show="modalOpen" x-transition.opacity @click="modalOpen = false" class="absolute inset-0 bg-pri-950/90 backdrop-blur-xl"></div>
+            <div x-show="modalOpen" 
+                 x-transition:enter="transition ease-out duration-500" 
+                 x-transition:enter-start="translate-y-full md:scale-95 md:opacity-0" 
+                 x-transition:enter-end="translate-y-0 md:scale-100 md:opacity-100"
+                 class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-[4rem] md:rounded-[3.5rem] p-10 md:p-14 overflow-y-auto no-scrollbar max-h-[92vh] shadow-2xl">
+                
+                <div class="w-16 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full mx-auto mb-10 md:hidden"></div>
+
+                <template x-if="selected">
+                    <div class="space-y-10">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-pri-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-pri-500" x-html="selected.icon"></div>
+                            <h2 class="text-4xl font-black tracking-tighter mb-2" x-text="selected.title"></h2>
+                            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-pri-500" x-text="selected.tag"></span>
+                        </div>
+
+                        <div class="glass-card p-10 rounded-[3rem] text-center border-2 border-pri-500/10">
+                            <p class="arabic-font text-5xl text-pri-600 dark:text-pri-400 mb-8" x-text="selected.arabic"></p>
+                            <p class="text-xl font-bold italic opacity-80 leading-relaxed" x-text="selected.translation"></p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="p-8 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] border-l-[12px] border-pri-500">
+                                <h4 class="text-[10px] font-black uppercase text-pri-500 mb-4 tracking-widest">Udhëzimi</h4>
+                                <p class="text-base font-bold leading-relaxed opacity-90" x-text="selected.instruction"></p>
+                            </div>
+                            <div class="p-8 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] border-l-[12px] border-gold-500">
+                                <h4 class="text-[10px] font-black uppercase text-gold-500 mb-4 tracking-widest">Dobia & Filozofia</h4>
+                                <p class="text-base font-bold leading-relaxed opacity-70" x-text="selected.why"></p>
+                            </div>
+                        </div>
+
+                        <button @click="modalOpen = false" class="w-full py-8 bg-pri-500 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-[0.4em] shadow-2xl shadow-pri-500/30 active:scale-95 transition-all">Kthehu te Mësimet</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function mesoCore() {
+            return {
+                settings: { darkMode: localStorage.getItem('darkMode') === 'true' },
+                activeCat: 'namazi',
+                modalOpen: false,
+                selected: null,
+
+                categories: [
+                    { id: 'namazi', name: 'Namazin', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>' },
+                    { id: 'abdesi', name: 'Abdesin', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' },
+                    { id: 'rregullat', name: 'Rregullat', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>' },
+                    { id: 'suret', name: 'Suret', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20"/></svg>' },
+                    { id: 'hadithet', name: 'Hadithet', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' }
+                ],
+
+                data: {
+                    namazi: [
+                        { title: 'Tekbiri Fillestar', tag: 'Hapi 1', shortDesc: 'Hyrja në bisedë me Krijuesin...', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 11V7a5 5 0 0 1 10 0v4M8 21h8a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"/></svg>', arabic: 'الله أكبر', translation: 'Allahu është më i madhi', instruction: 'Ngritni duart në lartësi të veshëve me shuplaka nga Kibla. Shqiptoni Tekbirin dhe lidhni duart në gjoks ose nën kërthizë.', why: 'Simbolizon shkëputjen totale nga bota materiale dhe hyrjen në prezencën hyjnore.' },
+                        { title: 'Rukuja', tag: 'Përulja', shortDesc: 'Fisnikërimi i trupit përmes përkuljes...', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg>', arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ', translation: 'I Pastër është Zoti im i Madhëruar', instruction: 'Përkuluni 90 gradë, duart te gjunjët, shpina drejt. Thoni tesbihun 3 herë me qetësi.', why: 'Fizikisht dëshmon që asgjë nuk është më e lartë se Zoti, as egoja jonë.' }
+                    ],
+                    abdesi: [
+                        { title: 'Larja e Fytyrës', tag: 'Esenciale', shortDesc: 'Drita e besimtarit në botën tjetër...', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>', arabic: 'نويت الوضوء', translation: 'E bëra nijet abdesin', instruction: 'Lani fytyrën tre herë nga vija e flokëve deri te mjekrra dhe nga veshi në vesh.', why: 'Pastron shqisat e shikimit dhe të folurit nga gabimet e ditës.' }
+                    ]
+                    // Kategoritë tjera popullohen në të njëjtën formë...
+                },
+
+                navigation: [
+                    { label: 'Kreu', url: 'index.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>' },
+                    { label: 'Mëso', url: 'meso.html', active: true, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' },
+                    { label: 'Libraria', url: 'libraria.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' },
+                    { label: 'Settings', url: 'settings.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82"/></svg>' }
+                ],
+
+                get activeData() { return this.data[this.activeCat] || []; },
+                setCategory(id) { 
+                    this.activeCat = id; 
+                    gsap.from("main > div", { opacity: 0, y: 15, stagger: 0.08, duration: 0.4, ease: 'power2.out' });
+                },
+                openModal(item) { this.selected = item; this.modalOpen = true; },
+                pageTransition(url) {
+                    document.body.style.opacity = '0';
+                    setTimeout(() => { window.location.href = url; }, 500);
+                },
+                init() { window.addEventListener('load', () => document.body.classList.add('loaded')); }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="sq" x-data="supremeCore()" :class="{ 'dark': settings.darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Meso Namazin</title>
+    
+    <script src="https://unpkg.com/@barba/core"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        pri: { 500: '#10b981', 600: '#059669', 950: '#020617' },
+                        gold: { 400: '#fbbf24', 500: '#f59e0b' }
+                    },
+                    borderRadius: { 'super': '3rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Glassmorphism Pro Max */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+        }
+
+        /* Fluid Layout adjustments for Desktop */
+        @media (min-width: 1024px) {
+            .app-container { max-width: 1000px; padding: 0 2rem; }
+            .main-grid { grid-template-columns: 1.5fr 1fr; gap: 2rem; }
+            .nav-container { max-width: 600px; left: 50%; transform: translateX(-50%); }
+        }
+
+        /* Smooth Exit/Entry */
+        body { opacity: 0; transition: opacity 0.6s ease-in-out; }
+        body.loaded { opacity: 1; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Video Aspect Ratio */
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 2rem; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] dark:bg-pri-950 text-slate-900 dark:text-white" :class="{ 'loaded': true }" data-barba="wrapper">
+
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pri-500/10 blur-[120px] rounded-full animate-pulse"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-gold-500/5 blur-[120px] rounded-full"></div>
+    </div>
+
+    <nav class="nav-container fixed bottom-8 left-6 right-6 h-22 glass-card rounded-[3rem] flex items-center justify-around px-4 shadow-2xl z-[100] border border-white/10">
+        <template x-for="nav in navigation">
+            <a :href="nav.url" 
+               class="relative flex flex-col items-center justify-center w-16 h-16 group transition-all"
+               :class="nav.active ? 'text-pri-500' : 'opacity-30 hover:opacity-100'">
+                <div class="group-hover:-translate-y-1 transition-transform duration-300" x-html="nav.icon"></div>
+                <span class="text-[8px] font-black uppercase tracking-widest mt-1.5" x-text="nav.label"></span>
+                <div x-show="nav.active" class="absolute -bottom-1 w-1 h-1 bg-pri-500 rounded-full"></div>
+            </a>
+        </template>
+    </nav>
+
+    <main data-barba="container" data-barba-namespace="home">
+        <div class="relative z-10 app-container mx-auto min-h-screen flex flex-col pb-40">
+            
+            <header class="pt-12 px-6 flex justify-between items-center sticky top-0 bg-inherit/20 backdrop-blur-md z-50">
+                <div class="flex items-center gap-4 group">
+                    <div class="w-14 h-14 bg-pri-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-pri-500/30 group-active:scale-90 transition-all">
+                        <svg width="28" height="28" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tighter leading-none">Ekselenca</h1>
+                        <span class="text-[10px] font-black uppercase tracking-[0.3em] text-pri-600">Platforma Supreme</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
+                        <div class="w-2 h-2 bg-pri-500 rounded-full animate-ping"></div>
+                        <span class="text-[9px] font-black uppercase tracking-widest opacity-60" x-text="currentTime"></span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="mt-8 px-6 space-y-10">
+                <div class="main-grid grid grid-cols-1 gap-10">
+                    
+                    <div class="space-y-8">
+                        <section>
+                            <h4 class="text-[11px] font-black uppercase tracking-[0.4em] opacity-40 mb-5 px-2">Vazhdo Mësimin</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <template x-for="feat in mainFeatures">
+                                    <a :href="feat.url" class="glass-card p-6 rounded-[2.5rem] group cursor-pointer hover:border-pri-500/50 transition-all duration-500 block">
+                                        <div class="w-12 h-12 bg-pri-500/10 rounded-xl flex items-center justify-center text-pri-500 mb-4 group-hover:bg-pri-500 group-hover:text-white transition-all" x-html="feat.icon"></div>
+                                        <h3 class="font-black tracking-tight" x-text="feat.title"></h3>
+                                        <p class="text-[9px] font-bold opacity-40 uppercase mt-1" x-text="feat.sub"></p>
+                                    </a>
+                                </template>
+                            </div>
+                        </section>
+
+                        <section>
+                            <div class="flex justify-between items-center mb-5 px-2">
+                                <h4 class="text-[11px] font-black uppercase tracking-[0.4em] opacity-40">Leksione Video</h4>
+                                <span class="text-[9px] font-black text-pri-500 uppercase cursor-pointer">Shih të gjitha</span>
+                            </div>
+                            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+                                <template x-for="vid in videos">
+                                    <div @click="openVideo(vid)" class="min-w-[280px] glass-card p-4 rounded-[2.5rem] cursor-pointer hover:scale-[1.02] transition-transform">
+                                        <div class="relative h-40 rounded-[1.8rem] overflow-hidden mb-4 bg-slate-200 dark:bg-white/5">
+                                            <img :src="vid.thumb" class="w-full h-full object-cover opacity-80">
+                                            <div class="absolute inset-0 flex items-center justify-center">
+                                                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h5 class="font-bold tracking-tight text-sm px-2" x-text="vid.title"></h5>
+                                        <p class="text-[10px] opacity-40 px-2 mt-1" x-text="vid.author"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="space-y-8">
+                        <section>
+                            <h4 class="text-[11px] font-black uppercase tracking-[0.4em] opacity-40 mb-5 px-2">Hadithi i Ditës</h4>
+                            <div class="glass-card p-8 rounded-[3rem] bg-gradient-to-br from-pri-500/5 to-transparent border-l-4 border-pri-500 relative overflow-hidden group">
+                                <svg class="absolute -right-4 -bottom-4 opacity-5 w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V3L14.017 2H21.017V15C21.017 18.3137 18.3307 21 15.017 21H14.017ZM3 21V18C3 16.8954 3.89543 16 5 16H8C8.55228 16 9 15.5523 9 15V9C9 8.44772 8.55228 8 8 8H5C3.89543 8 3 7.10457 3 6V3L3 2H10V15C10 18.3137 7.31371 21 4 21H3Z"/></svg>
+                                <p class="text-lg font-bold italic leading-relaxed mb-6 relative z-10" x-text="dailyHadith.text"></p>
+                                <div class="flex items-center justify-between relative z-10">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-pri-500" x-text="dailyHadith.ref"></span>
+                                    <button @click="openModal(dailyHadith)" class="text-[9px] font-black uppercase bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-full">Lexo shpjegimin</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section>
+                            <h4 class="text-[11px] font-black uppercase tracking-[0.4em] opacity-40 mb-5 px-2">Artikujt e Fundit</h4>
+                            <div class="space-y-4">
+                                <template x-for="news in articles">
+                                    <div @click="openModal(news)" class="glass-card p-5 rounded-[2rem] flex gap-5 items-center cursor-pointer hover:bg-pri-500/5 transition-all">
+                                        <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-white/5">
+                                            <img :src="news.img" class="w-full h-full object-cover">
+                                        </div>
+                                        <div>
+                                            <h6 class="font-black leading-tight mb-1" x-text="news.title"></h6>
+                                            <p class="text-[10px] opacity-40" x-text="news.date"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </section>
+                    </div>
+
+                </div>
+            </main>
+
+            <div x-show="modalOpen" class="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-6" x-cloak>
+                <div x-show="modalOpen" x-transition.opacity @click="modalOpen = false" class="absolute inset-0 bg-pri-950/90 backdrop-blur-xl"></div>
+                <div x-show="modalOpen" 
+                     x-transition:enter="transition ease-out duration-500" 
+                     x-transition:enter-start="translate-y-full md:scale-95 md:opacity-0" 
+                     x-transition:enter-end="translate-y-0 md:scale-100 md:opacity-100"
+                     class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-[3.5rem] md:rounded-[3.5rem] p-8 md:p-12 overflow-y-auto no-scrollbar max-h-[90vh]">
+                    
+                    <template x-if="activeContent">
+                        <div class="space-y-6">
+                            <template x-if="activeContent.type === 'video'">
+                                <div class="video-container">
+                                    <iframe :src="activeContent.videoUrl" allowfullscreen></iframe>
+                                </div>
+                            </template>
+                            <template x-if="activeContent.img">
+                                <img :src="activeContent.img" class="w-full h-64 object-cover rounded-[2.5rem]">
+                            </template>
+                            <h2 class="text-3xl font-black tracking-tighter" x-text="activeContent.title"></h2>
+                            <div class="prose dark:prose-invert">
+                                <p class="text-lg leading-relaxed opacity-70" x-text="activeContent.fullText || activeContent.text"></p>
+                            </div>
+                            <button @click="modalOpen = false" class="w-full py-6 bg-pri-500 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-pri-500/20">Mbyll</button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function supremeCore() {
+            return {
+                settings: { darkMode: localStorage.getItem('darkMode') === 'true' },
+                modalOpen: false,
+                activeContent: null,
+                currentTime: '',
+
+                mainFeatures: [
+                    { title: 'Mëso Namazin', sub: 'Filloni këtu', url: 'meso.html', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>' },
+                    { title: 'Abdesi', sub: 'Pastrimi shpirtëror', url: 'abdesi.html', icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>' }
+                ],
+
+                videos: [
+    { 
+        type: 'video', 
+        title: 'Kjo është vlera e NAMAZIT', 
+        author: 'Hoxhë Ardian Sejdiu', 
+        thumb: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400', 
+        videoUrl: 'https://www.youtube.com/embed/u3-BrFo79Mk?si=p5jmDAknBebh-nuO',
+        fullText: 'Ky leksion shpjegon rëndësinë e përqëndrimit dhe përulësisë gjatë faljes së namazit.' 
+    },
+    { 
+        type: 'video', 
+        title: 'Rëndësia e Namazit', 
+        author: 'Hoxhë Besnik', 
+        thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400', 
+        videoUrl: 'https://www.youtube.com/embed/u3-BrFo79Mk',
+        fullText: 'Namazi është lidhja direkte mes krijesës dhe Krijuesit, shtylla kryesore e besimit.' 
+    }
+],
+
+
+                dailyHadith: { title: 'Hadithi i Ditës', text: '"Veprat vlerësohen sipas qëllimit (nijetit)..."', ref: 'Buhariu & Muslimi', fullText: 'Ky hadith është baza e Islamit. Çdo vepër që bëjmë duhet të ketë një qëllim të pastër vetëm për Allahun.' },
+
+                articles: [
+                    { title: 'Mirësitë e xhumasë', date: 'Para 2 orësh', img: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=200', text: 'Dita e Xhumasë është festa e javës për muslimanët...' },
+                    { title: 'Si të përqëndrohemi në Namaz', date: 'Dje', img: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?w=200', text: 'Koncentrimi (Husheu) është shpirti i namazit...' }
+                ],
+
+                navigation: [
+                    { label: 'Kreu', url: 'index.html', active: true, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>' },
+                    { label: 'Mëso', url: 'meso.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' },
+                    { label: 'Libraria', url: 'libraria.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' },
+                    { label: 'Settings', url: 'settings.html', active: false, icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82"/></svg>' }
+                ],
+
+                openVideo(vid) { this.activeContent = vid; this.modalOpen = true; },
+                openModal(content) { this.activeContent = content; this.modalOpen = true; },
+                
+                init() {
+                    window.addEventListener('load', () => document.body.classList.add('loaded'));
+                    setInterval(() => { this.currentTime = new Date().toLocaleTimeString('sq-AL', {hour12:false}); }, 1000);
+                }
+            }
+        }
+
+        // Barba.js Inicializimi
+        barba.init({
+            transitions: [{
+                name: 'opacity-transition',
+                leave(data) {
+                    return gsap.to(data.current.container, {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.4,
+                        ease: "power2.in"
+                    });
+                },
+                enter(data) {
+                    gsap.from(data.next.container, {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.4,
+                        ease: "power2.out"
+                    });
+
+                    // Ri-inicializo Alpine.js për komponentet e reja
+                    if (window.Alpine) {
+                        window.Alpine.discoverUninitializedComponents((el) => {
+                            window.Alpine.initializeComponent(el);
+                        });
+                    }
+                }
+            }]
+        });
+    </script>
+</body>
+</html>

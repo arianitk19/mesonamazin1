@@ -1,0 +1,23 @@
+{
+  "name": "Mëso Namazin",
+  "short_name": "Namazi",
+  "description": "Platformë edukative për mësimin e namazit dhe abdesit.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/512/mosque.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/192/mosque.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}
